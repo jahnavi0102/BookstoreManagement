@@ -1,0 +1,6 @@
+env
+bookstore/userauth/__pycache__
+bookstore/userauth/migrations
+bookstore/userorder/__pycache__
+bookstore/userorder/migration
+bookstore/bookstore/__pycache__
