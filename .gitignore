@@ -2,5 +2,7 @@ env
 bookstore/userauth/__pycache__
 bookstore/userauth/migrations
 bookstore/userorder/__pycache__
-bookstore/userorder/migration
+bookstore/userorder/migrations
 bookstore/bookstore/__pycache__
+bookstore/booksauthor/migrations
+# bookstore/bookauthor/__pycache__

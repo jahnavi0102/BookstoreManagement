@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from datetime import datetime
 from .models import Users
-from .functions import signup, login
+from .functions import usersignup, userlogin
+from django.contrib.auth import authenticate, login
 
 
 class UsersAuth(viewsets.ViewSet):
@@ -20,13 +21,12 @@ class UsersAuth(viewsets.ViewSet):
         """
         Create/Signup user.
         """
-        print(request.data)
         if not request.data.get("email") and not request.data.get("username") and not request.data.get("password"):
             return Response(data = {"Error": "Email, Username and Password fields are mandatory."}, status=status.HTTP_406_NOT_ACCEPTABLE)
         
         email = request.data["email"]
-        username = request.data["email"]
-        password = request.data["email"]
+        username = request.data["username"]
+        password = request.data["password"]
         is_staff = request.data.get("is_staff",False)
         first_name = request.data.get("first_name", None)
         last_name = request.data.get("last_name", None)
@@ -43,29 +43,28 @@ class UsersAuth(viewsets.ViewSet):
             "is_staff": is_staff,
             "date_joined":datetime.now()
         }
-        serializer = signup(user=user_data)
-
-        if not serializer.is_valid():
+        statuss, serializer = usersignup(user=user_data)
+        if not statuss:
             return Response(data= {"Error": "Fields are not appropriate"}, status=status.HTTP_204_NO_CONTENT)
-        
-        serializer.save()
-        
-        return Response(data=user_data, status=status.HTTP_201_CREATED)
+
+        result = {"data":user_data, "message": "Created successfully"}
+        return Response(data=result, status=status.HTTP_201_CREATED)
     
+
     def retrieve(self,request):
         """
         Login User and data.get the authentication token.
         """
-        if not (request.data.get("email") and request.data.get("username") and request.data.get("password")):
-            return Response(data = {"Error": "Email, Username and Password fields are mandatory for login."}, status=status.HTTP_406_NOT_ACCEPTABLE)
-        email = request.data["email"]
-        username = request.data["email"]
-        password = request.data["email"]
+        if not request.data.get("username") and request.data.get("password"):
+            return Response(data = {"Error": "Username and Password fields are mandatory for login."}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        username = request.data["username"]
+        password = request.data["password"]
 
-        user = Users.objects.filter(email=email, username=username, password=password)
-        print(user)
-        if user:
-            token = login(user=user)
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            token = userlogin(user=user)
             return Response(data={
                 "email": user.email,
                 "customer":user.is_staff,
@@ -73,6 +72,10 @@ class UsersAuth(viewsets.ViewSet):
             }, status=status.HTTP_200_OK)
         else:
             return Response(data= {"Error": "Either your email is not found or username or password is wrong. Signup or fix the fields"}, status=status.HTTP_302_FOUND)
+        
+
+    
+    
 
 
         
