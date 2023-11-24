@@ -13,4 +13,12 @@ def usersignup(user:Users):
 def userlogin(user:Users):
     token,created = Token.objects.get_or_create(user=user)
     return token.key
+
+def userUpdate(user:Users, data:dict):
+    serializer = UserSerializer(instance=user, data=data, partial=True)
+    if not serializer.is_valid():
+        return False, serializer.errors
+    serializer.save()
+    return True, serializer
+    
     

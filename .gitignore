@@ -5,4 +5,5 @@ bookstore/userorder/__pycache__
 bookstore/userorder/migrations
 bookstore/bookstore/__pycache__
 bookstore/booksauthor/migrations
+bookstore/booksauthor/__pycache__
 # bookstore/bookauthor/__pycache__

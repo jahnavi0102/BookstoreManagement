@@ -1,14 +1,15 @@
 from django.db import models
 
-class Authors():
+class Authors(models.Model):
     """
     Authors data to be stored in this model. 
     """
     name = models.CharField(max_length=200,blank=False)
+
     def __str__(self):
        return self.name
     
-class Books():
+class Books(models.Model):
     """
     Books data to be stored in this model. 
     """
@@ -17,6 +18,7 @@ class Books():
     price = models.FloatField(blank=False)
     quantity = models.IntegerField(blank=False, default=1)
     written_by = models.ManyToManyField(Authors)
+
     def __str__(self):
        return self.title
     

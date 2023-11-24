@@ -4,8 +4,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from datetime import datetime
 from .models import Users
-from .functions import usersignup, userlogin
+from .functions import usersignup, userlogin, userUpdate
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.hashers import check_password
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import BasicAuthentication
 
 
 class UsersAuth(viewsets.ViewSet):
@@ -59,11 +62,12 @@ class UsersAuth(viewsets.ViewSet):
             return Response(data = {"Error": "Username and Password fields are mandatory for login."}, status=status.HTTP_406_NOT_ACCEPTABLE)
         username = request.data["username"]
         password = request.data["password"]
-
-        user = authenticate(request, username=username, password=password)
-
+        print(Users.objects.get(username=username))
+        if not check_password(Users.objects.get(username=username).password, password):
+            return Response(data= {"Error": "username or password is wrong."}, status=status.HTTP_205_RESET_CONTENT)
+        user = authenticate(request, username=username)
         if user is not None:
-            login(request, user)
+            # login(request, user)
             token = userlogin(user=user)
             return Response(data={
                 "email": user.email,
@@ -72,6 +76,39 @@ class UsersAuth(viewsets.ViewSet):
             }, status=status.HTTP_200_OK)
         else:
             return Response(data= {"Error": "Either your email is not found or username or password is wrong. Signup or fix the fields"}, status=status.HTTP_302_FOUND)
+        
+    
+    def update(self, request):
+        """
+        Update Users password, username, email, first_name, last_name.
+        """
+        authenticated = [BasicAuthentication]
+        permission_classes = [IsAuthenticated]
+        data = dict(request.data)
+        # user = Users.objects.get(email = request.user.email)
+        dicts = {}
+        print(data)
+        if data.get("new-password") and data.get("old-password"):
+            if check_password(data["old-password"], request.user.password):
+                dicts["password"] = data["new-password"]
+                del data["old-password"]
+                del data["new-password"]
+            else:
+                return Response(data = {"Error": "old-password doesnt matches"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        elif not data and (not data.get("new-password") or not data.get("old-password")):
+            return Response(data = {"Error": "old-password and new-password required to update password"}, status=status.HTTP_206_PARTIAL_CONTENT)
+
+        statuss, serializer = userUpdate(user=request.user, data=data)
+        if not statuss:
+            return Response(data= {"Error": "Only (username, email, old-password, new-password, first_name, last_name allowed.)"}, status=status.HTTP_204_NO_CONTENT)
+
+        return Response(data=f"User updated successfully {request.user.username}", status=status.HTTP_201_CREATED)
+        
+
+
+
+    
         
 
     
