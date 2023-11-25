@@ -13,11 +13,8 @@ from rest_framework.authentication import BasicAuthentication
 
 class UsersAuth(viewsets.ViewSet):
     """
-    Example empty viewset demonstrating the standard
+    Viewset demonstrating the standard
     actions that will be handled by a router class.
-
-    If you're using format suffixes, make sure to also include
-    the `format=None` keyword argument for each action.
     """
 
     def create(self, request):
@@ -35,7 +32,11 @@ class UsersAuth(viewsets.ViewSet):
         last_name = request.data.get("last_name", None)
 
         if Users.objects.filter(email=email).exists():
-            return Response(data= {"Error": "Signup is already done"}, status=status.HTTP_302_FOUND)
+            return Response(data= {"Error": "Signup is already done, or email already exists."}, status=status.HTTP_302_FOUND)
+        
+        if Users.objects.filter(username=username).exists():
+            return Response(data= {"Error": "Username already exists."}, status=status.HTTP_302_FOUND)
+
         
         user_data = {
             "email": email,
@@ -60,14 +61,13 @@ class UsersAuth(viewsets.ViewSet):
         """
         if not request.data.get("username") and request.data.get("password"):
             return Response(data = {"Error": "Username and Password fields are mandatory for login."}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        
         username = request.data["username"]
         password = request.data["password"]
-        print(Users.objects.get(username=username))
-        if not check_password(Users.objects.get(username=username).password, password):
-            return Response(data= {"Error": "username or password is wrong."}, status=status.HTTP_205_RESET_CONTENT)
-        user = authenticate(request, username=username)
+
+        user = authenticate(request, username=username, password=password, is_active=True)
+
         if user is not None:
-            # login(request, user)
             token = userlogin(user=user)
             return Response(data={
                 "email": user.email,
@@ -84,26 +84,81 @@ class UsersAuth(viewsets.ViewSet):
         """
         authenticated = [BasicAuthentication]
         permission_classes = [IsAuthenticated]
-        data = dict(request.data)
-        # user = Users.objects.get(email = request.user.email)
-        dicts = {}
-        print(data)
-        if data.get("new-password") and data.get("old-password"):
-            if check_password(data["old-password"], request.user.password):
-                dicts["password"] = data["new-password"]
-                del data["old-password"]
-                del data["new-password"]
-            else:
-                return Response(data = {"Error": "old-password doesnt matches"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        data = {}
+        update_password = False
+
+        if not request.user.is_active:
+            return Response(data = {"Message": "No user exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not request.data:
+            return Response(data = {"Message": "No value to update."},status=status.HTTP_400_BAD_REQUEST)
         
-        elif not data and (not data.get("new-password") or not data.get("old-password")):
+        if (request.data.get("new_password") and not request.data.get("old_password")) or (not request.data.get("new_password") and request.data.get("old_password")):
             return Response(data = {"Error": "old-password and new-password required to update password"}, status=status.HTTP_206_PARTIAL_CONTENT)
+        else:
+            if request.data.get("first_name"):
+                data["first_name"] = request.data["first_name"]
+            if request.data.get("last_name"):
+                data["last_name"] = request.data["last_name"]
+            if request.data.get("email"):
+                if Users.objects.filter(username=request.data["username"]):
+                    return Response(data={"Error": "Username already exists insert a new username"}, status=status.HTTP_205_RESET_CONTENT)
+                data["email"] = request.data["email"]
+            if request.data.get("username"):
+                if Users.objects.filter(username=request.data["username"]):
+                    return Response(data={"Error": "Username already exists insert a new username"}, status=status.HTTP_205_RESET_CONTENT)
+                data["username"] = request.data["username"]
+            if request.data.get("new_password"):
+                update_password = True
+                data["password"] = request.data["new_password"]
+            if request.data.get("old_password"):
+                data["old_password"] = request.data["old_password"]
 
+        if request.data and not data:
+            return Response(data = {"Error": "Wrong value to update"}, status=status.HTTP_205_RESET_CONTENT)
+        
+        if update_password:
+            if data.get("new-password") and data.get("old-password"):
+                if check_password(data["old-password"], request.user.password):
+                    del data["old-password"]
+                else:
+                    return Response(data = {"Error": "old-password doesnt matches"}, status=status.HTTP_401_UNAUTHORIZED)
+            
         statuss, serializer = userUpdate(user=request.user, data=data)
-        if not statuss:
-            return Response(data= {"Error": "Only (username, email, old-password, new-password, first_name, last_name allowed.)"}, status=status.HTTP_204_NO_CONTENT)
 
+        if not statuss:
+            return Response(data= {"Error": serializer}, status=status.HTTP_204_NO_CONTENT)
+        
         return Response(data=f"User updated successfully {request.user.username}", status=status.HTTP_201_CREATED)
+    
+
+    def destroy(self, request):
+        """
+        Update Users password, username, email, first_name, last_name.
+        """
+        authenticated = [BasicAuthentication]
+        permission_classes = [IsAuthenticated]
+
+        if not request.user.is_active:
+            return Response(data = {"Message": "No user exist."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not request.data.get("username") or not request.data.get("password"):
+            return Response(data = {"Error": "Username and Password fields are mandatory."}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        
+        if request.user.username == request.data["username"]:
+            statuss, serializer = userUpdate(user=request.user, data={"is_active":False})
+            if not statuss:
+                return Response(data= {"Error": serializer}, status=status.HTTP_204_NO_CONTENT)
+            
+        else:
+            return Response(data = {"Error": "Wrong username"}, status=status.HTTP_205_RESET_CONTENT)
+        
+        return Response(data={"Message": "Deleted successfully"}, status=status.HTTP_200_OK)
+
+
+
+        
         
 
 
