@@ -10,6 +10,7 @@ class AuthorsSerializer(serializers.ModelSerializer):
     books = serializers.StringRelatedField(many=True)
 
 
+
 class BooksSerializer(serializers.ModelSerializer):
     class Meta:
         model = Books
@@ -17,6 +18,10 @@ class BooksSerializer(serializers.ModelSerializer):
 
     written_by = AuthorsSerializer(many=True)
 
+    def create(self, validated_data):
+        book = Books.objects.create(**validated_data)
+        book.save()
+        return book
 
 
 
