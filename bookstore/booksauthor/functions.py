@@ -1,5 +1,5 @@
-from models import Authors
-from serializers import BooksSerializer
+from .models import Authors
+from .serializers import BooksSerializer
 
 
 def checkAuthor(author):

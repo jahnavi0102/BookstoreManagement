@@ -5,10 +5,7 @@ from .models import Books, Authors
 class AuthorsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Authors
-        fields = ('id', 'name', 'books')
-
-    books = serializers.StringRelatedField(many=True)
-
+        fields = ('id', 'name')
 
 
 class BooksSerializer(serializers.ModelSerializer):
@@ -24,7 +21,7 @@ class BooksSerializer(serializers.ModelSerializer):
         return book
 
 
-
-
-
-    
+class BooksUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Books
+        fields = ('quantity', 'price')

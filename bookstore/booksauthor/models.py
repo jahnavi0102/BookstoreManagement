@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Authors(models.Model):
     """
     Authors data to be stored in this model. 
@@ -7,8 +8,9 @@ class Authors(models.Model):
     name = models.CharField(max_length=200,blank=False)
 
     def __str__(self):
-       return self.name
-    
+        return self.name
+
+
 class Books(models.Model):
     """
     Books data to be stored in this model. 
@@ -20,11 +22,4 @@ class Books(models.Model):
     written_by = models.ManyToManyField(Authors)
 
     def __str__(self):
-       return self.title
-    
-
-
-    
-
-
-
+        return self.title

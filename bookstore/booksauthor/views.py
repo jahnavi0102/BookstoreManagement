@@ -4,13 +4,14 @@ from rest_framework import status
 from django.contrib.auth import authenticate, login
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from serializers import BooksSerializer, AuthorsSerializer
-from models import Books, Authors
-from functions import checkAuthor, saveBook
+from .serializers import BooksSerializer, AuthorsSerializer, BooksUpdateSerializer
+from .models import Books, Authors
+from .functions import checkAuthor, saveBook
 
 # Create your views here.
 
-class Books(viewsets.ViewSet):
+
+class BooksViewSet(viewsets.ViewSet):
     """
     Book viewset demonstrating the standard
     actions that will be handled by a router class.
