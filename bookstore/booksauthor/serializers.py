@@ -33,7 +33,3 @@ class BooksSerializer(serializers.ModelSerializer):
         return book
 
 
-class BooksUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Books
-        fields = ('quantity', 'price')
