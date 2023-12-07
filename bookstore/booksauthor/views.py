@@ -4,11 +4,11 @@ from rest_framework import status
 from django.contrib.auth import authenticate, login
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from .serializers import BooksSerializer, AuthorsSerializer, BooksUpdateSerializer
+from .serializers import BooksSerializer, AuthorsSerializer
+
 from .models import Books, Authors
 from .functions import checkAuthor, saveBook
 
-# Create your views here.
 
 
 class BooksViewSet(viewsets.ViewSet):
@@ -44,10 +44,12 @@ class BooksViewSet(viewsets.ViewSet):
         if not (request.data.get("title") or request.data.get("isbn") or request.data.get("price") or request.data.get("quantity") or request.data.get("written_by")):
             return Response(data={"Error": "'title', 'isbn', 'price', 'quantity', 'written_by' is required"})
         
-        author = checkAuthor(request.data["written_by"])
-
-        if not author:
-            return Response()
+        written_by = request.data["written_by"].split(",")
+        written = []
+        for author in written_by:
+            written_by.append({"name":author})
+        print(written)
+        
         
         dicts = {}
 
@@ -55,14 +57,15 @@ class BooksViewSet(viewsets.ViewSet):
         dicts["isbn"] = request.data.get("isbn")
         dicts["price"] = request.data.get("price")
         dicts["quantity"] = request.data.get("quantity")
-        dicts["written_by"] = author
+        dicts["written_by"] = written
 
         serializer, statuss = saveBook(validated_data=dicts)
+        print(serializer, statuss)
 
         if not statuss:
-            return Response(data= {"Error": "Fields are not appropriate"}, status=status.HTTP_204_NO_CONTENT)
+            return Response(data= {"Error": serializer}, status=status.HTTP_204_NO_CONTENT)
 
-        result = {"data":serializer.data, "message": "Created successfully"}
+        result = {"message": "Created successfully"}
         return Response(data=result, status=status.HTTP_201_CREATED)
 
 
