@@ -8,7 +8,6 @@ class AuthorsSerializer(serializers.ModelSerializer):
         fields = ('id', 'name')
 
 
-
 class BooksSerializer(serializers.ModelSerializer):
     class Meta:
         model = Books
@@ -34,7 +33,3 @@ class BooksSerializer(serializers.ModelSerializer):
         return book
 
 
-
-
-
-    

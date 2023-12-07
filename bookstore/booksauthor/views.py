@@ -5,11 +5,13 @@ from django.contrib.auth import authenticate, login
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .serializers import BooksSerializer, AuthorsSerializer
+
 from .models import Books, Authors
 from .functions import checkAuthor, saveBook
 
 
-class Books(viewsets.ViewSet):
+
+class BooksViewSet(viewsets.ViewSet):
     """
     Book viewset demonstrating the standard
     actions that will be handled by a router class.

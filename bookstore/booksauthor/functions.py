@@ -23,5 +23,6 @@ def saveBook(validated_data):
     if not serializer.is_valid():
         return serializer.errors, False
     serializer.save()
-    print(serializer)
+
     return serializer, True
+
