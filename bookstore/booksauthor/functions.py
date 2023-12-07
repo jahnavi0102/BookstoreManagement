@@ -24,7 +24,5 @@ def saveBook(validated_data):
         return serializer.errors, False
     serializer.save()
 
-    return True, serializer
-
     return serializer, True
 
