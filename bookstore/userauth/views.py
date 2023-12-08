@@ -8,7 +8,7 @@ from .functions import usersignup, userlogin, userUpdate
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.hashers import check_password
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import BasicAuthentication
+from rest_framework.authentication import BasicAuthentication, TokenAuthentication
 
 
 class UsersAuth(viewsets.ViewSet):
@@ -82,12 +82,15 @@ class UsersAuth(viewsets.ViewSet):
         """
         Update Users password, username, email, first_name, last_name.
         """
-        authenticated = [BasicAuthentication]
-        permission_classes = [IsAuthenticated]
+        self.authentication_classes = [TokenAuthentication]
+        self.permission_classes = [IsAuthenticated]
 
         data = {}
         update_password = False
 
+        if not request.user.is_authenticated:
+            return Response(data = {"Message": "Authentication failed."}, status=status.HTTP_400_BAD_REQUEST)
+        
         if not request.user.is_active:
             return Response(data = {"Message": "No user exist."}, status=status.HTTP_400_BAD_REQUEST)
 
